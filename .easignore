@@ -1,0 +1,12 @@
+node_modules/
+.expo/
+dist/
+web-build/
+.eas/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.DS_Store
+*.pem
+/ios
+/android

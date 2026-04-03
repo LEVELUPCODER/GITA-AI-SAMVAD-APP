@@ -46,10 +46,12 @@ export async function getKrishnaGuidance(
   } catch (error: any) {
     console.error('Gemini API Error:', error);
     
-    if (error?.message?.includes('API_KEY')) {
-      throw new Error('🔑 Divine connection requires a valid API key. Please check your Gemini API key.');
+    const errorMsg = error?.message?.toLowerCase() || '';
+    
+    if (errorMsg.includes('api key') || errorMsg.includes('api_key') || errorMsg.includes('unregistered caller')) {
+      throw new Error('🔑 Divine connection requires a valid API key. The API key was missing or invalid.');
     }
-    if (error?.message?.includes('quota') || error?.message?.includes('rate')) {
+    if (errorMsg.includes('quota exceeded') || errorMsg.includes('rate limit')) {
       throw new Error('⏳ The divine channel is busy, Parth. Please wait a moment and try again.');
     }
     
