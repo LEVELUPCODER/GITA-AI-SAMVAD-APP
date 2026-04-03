@@ -22,10 +22,16 @@
         "backgroundColor": "#0A0A0F"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.levelupcodersorganization.gitaaisamvad"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3df13bdc-2ce2-4725-8e5f-0bbca9629b07"
+      }
     }
   }
 }
