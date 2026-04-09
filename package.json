@@ -10,8 +10,9 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
-    "@google/generative-ai": "^0.24.1",
+    "@jridgewell/gen-mapping": "^0.3.13",
     "@react-native-async-storage/async-storage": "^2.2.0",
+    "cross-spawn": "^7.0.6",
     "expo": "~54.0.33",
     "expo-linear-gradient": "~15.0.8",
     "expo-status-bar": "~3.0.9",
