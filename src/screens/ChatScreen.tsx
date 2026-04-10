@@ -8,6 +8,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import { Audio } from 'expo-av';
 import { ChatBubble } from '../components/ChatBubble';
 import { ChatInput } from '../components/ChatInput';
 import { Header } from '../components/Header';
@@ -19,6 +20,21 @@ import { Colors } from '../theme/colors';
 export function ChatScreen() {
   const { state, dispatch } = useAppContext();
   const flatListRef = useRef<FlatList>(null);
+
+  // Play startup sound
+  useEffect(() => {
+    async function playStartupSound() {
+      try {
+        const { sound } = await Audio.Sound.createAsync(
+          require('../../assets/data/flute.mp3/krishna_flute.mp3')
+        );
+        await sound.playAsync();
+      } catch (error) {
+        console.log('Error playing startup sound:', error);
+      }
+    }
+    playStartupSound();
+  }, []);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -41,14 +57,21 @@ export function ChatScreen() {
     dispatch({ type: 'SET_LOADING', isLoading: true });
 
     try {
-      const response = await getKrishnaGuidance(text, state.responseDepth);
+      // Create empty assistant placeholder to show UI stream instantly
+      const assistantId = generateMessageId();
       const assistantMsg: ChatMessage = {
-        id: generateMessageId(),
+        id: assistantId,
         role: 'assistant',
-        content: response,
+        content: '',
         timestamp: Date.now(),
       };
       dispatch({ type: 'ADD_MESSAGE', message: assistantMsg });
+
+      // Call streaming API
+      await getKrishnaGuidance(text, state.responseDepth, state.language, (currentText: string) => {
+        dispatch({ type: 'UPDATE_MESSAGE_CONTENT', messageId: assistantId, content: currentText });
+      });
+
     } catch (error: any) {
       const errorMsg: ChatMessage = {
         id: generateMessageId(),
@@ -74,6 +97,13 @@ export function ChatScreen() {
   const handleToggleDepth = () => {
     const newDepth = state.responseDepth === 'short' ? 'detailed' : 'short';
     dispatch({ type: 'SET_RESPONSE_DEPTH', depth: newDepth });
+  };
+
+  const handleToggleLanguage = () => {
+    const nextLang = state.language === 'english' ? 'hindi'
+                   : state.language === 'hindi' ? 'sanskrit'
+                   : 'english';
+    dispatch({ type: 'SET_LANGUAGE', language: nextLang });
   };
 
   const handleNewChat = () => {
@@ -137,6 +167,8 @@ export function ChatScreen() {
       <Header
         responseDepth={state.responseDepth}
         onToggleDepth={handleToggleDepth}
+        language={state.language}
+        onToggleLanguage={handleToggleLanguage}
         onNewChat={handleNewChat}
       />
 
