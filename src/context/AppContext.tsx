@@ -2,6 +2,8 @@ import React, { createContext, useContext, useReducer, useEffect, ReactNode } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ResponseDepth } from '../services/geminiService';
 
+export type Language = 'english' | 'hindi' | 'sanskrit';
+
 // Types
 export interface ChatMessage {
   id: string;
@@ -14,6 +16,7 @@ interface AppState {
   chatHistory: ChatMessage[];
   favorites: ChatMessage[];
   responseDepth: ResponseDepth;
+  language: Language;
   isLoading: boolean;
 }
 
@@ -24,12 +27,15 @@ type AppAction =
   | { type: 'ADD_FAVORITE'; message: ChatMessage }
   | { type: 'REMOVE_FAVORITE'; messageId: string }
   | { type: 'SET_RESPONSE_DEPTH'; depth: ResponseDepth }
+  | { type: 'SET_LANGUAGE'; language: Language }
+  | { type: 'UPDATE_MESSAGE_CONTENT'; messageId: string; content: string }
   | { type: 'LOAD_STATE'; state: Partial<AppState> };
 
 const initialState: AppState = {
   chatHistory: [],
   favorites: [],
   responseDepth: 'short',
+  language: 'english',
   isLoading: false,
 };
 
@@ -48,6 +54,17 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, favorites: state.favorites.filter(f => f.id !== action.messageId) };
     case 'SET_RESPONSE_DEPTH':
       return { ...state, responseDepth: action.depth };
+    case 'SET_LANGUAGE':
+      return { ...state, language: action.language };
+    case 'UPDATE_MESSAGE_CONTENT':
+      return {
+        ...state,
+        chatHistory: state.chatHistory.map(msg =>
+          msg.id === action.messageId
+            ? { ...msg, content: action.content }
+            : msg
+        )
+      };
     case 'LOAD_STATE':
       return { ...state, ...action.state };
     default:
@@ -87,10 +104,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const toSave = {
       favorites: state.favorites,
       responseDepth: state.responseDepth,
-      // We don't persist chat history to keep fresh sessions
+      language: state.language,
+      chatHistory: state.chatHistory,
     };
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave)).catch(() => {});
-  }, [state.favorites, state.responseDepth]);
+  }, [state.favorites, state.responseDepth, state.language, state.chatHistory]);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>
