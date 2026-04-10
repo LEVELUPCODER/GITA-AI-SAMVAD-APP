@@ -3,14 +3,17 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../theme/colors';
 import { ResponseDepth } from '../services/geminiService';
+import { Language } from '../context/AppContext';
 
 interface HeaderProps {
   responseDepth: ResponseDepth;
   onToggleDepth: () => void;
+  language: Language;
+  onToggleLanguage: () => void;
   onNewChat: () => void;
 }
 
-export function Header({ responseDepth, onToggleDepth, onNewChat }: HeaderProps) {
+export function Header({ responseDepth, onToggleDepth, language, onToggleLanguage, onNewChat }: HeaderProps) {
   return (
     <LinearGradient
       colors={['rgba(10, 10, 15, 1)', 'rgba(10, 10, 15, 0.92)']}
@@ -37,6 +40,20 @@ export function Header({ responseDepth, onToggleDepth, onNewChat }: HeaderProps)
             </Text>
             <Text style={styles.depthText}>
               {responseDepth === 'short' ? 'Brief' : 'Deep'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Language toggle */}
+          <TouchableOpacity
+            style={styles.depthButton}
+            onPress={onToggleLanguage}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.depthIcon}>
+              {language === 'english' ? '🇺🇸' : language === 'hindi' ? '🇮🇳' : '🕉️'}
+            </Text>
+            <Text style={styles.depthText}>
+              {language === 'english' ? 'Eng' : language === 'hindi' ? 'Hin' : 'San'}
             </Text>
           </TouchableOpacity>
 
