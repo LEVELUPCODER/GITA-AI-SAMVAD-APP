@@ -3,18 +3,19 @@
 **Gita-Ai Samvad** is an immersive, mobile-first AI application built with React Native and Expo. It delivers personalized, deeply contextual spiritual guidance by embodying the persona of Lord Krishna, drawing wisdom directly from the Bhagavad Gita using a custom Retrieval-Augmented Generation (RAG) architecture.
 
 ## ✨ Features
-* **Divine RAG Pipeline**: Locally indexes 640+ Shlokas, fetching the most relevant verses to the user's doubt before dynamically sending them to the AI to answer. 
-* **Seamless AI Brain**: Powered by the hyper-fast **OpenRouter Proxy**, utilizing Google's `gemini-2.5-flash` model to guarantee swift, accurate, and scalable responses.
-* **Premium UI/UX**: Designed with a "Divine Drift" aesthetic featuring glassmorphism, glowing typography, smooth micro-animations, and a seamless Dark Mode natively integrated.
-* **Save for Later**: Persist your favorite divine guidance offline utilizing Async Storage.
-* **Cross-Platform**: Compile beautifully to Android, iOS, and Web via Expo.
+* **Divine RAG Pipeline**: Locally indexes 640+ Shlokas. Includes **Offline Fallback Mode**—if the internet drops, Krishna still delivers raw local verses without skipping a beat!
+* **Seamless AI Brain**: Powered by the hyper-fast **OpenRouter Proxy** and Google's `gemini-2.5-flash` model. Features **Real-Time Streaming** via Server-Sent Events for instant typewriter-speed answers.
+* **Localization Engine**: Dynamically translates and responds in English, pure Hindi, or Sanskrit with English definitions at the tap of a button.
+* **Native Voice Integration**: Ask your questions verbally via the Microphone (`@react-native-voice/voice`) and hear Krishna's divine response read aloud via the Native Speech Synthesizer (`expo-speech`).
+* **Full Persistence**: Your entire Chat History and Favorites are persisted locally using `AsyncStorage` so you never lose a profound realization.
+* **OTA Resilience**: Integrated with **EAS Update** for instantaneous Over-The-Air feature deployments without needing a new `.apk`!
 
 ## 🛠 Tech Stack
 * **Framework**: React Native / Expo SDK 54
-* **AI Provider**: OpenRouter API (`google/gemini-2.5-flash`)
-* **State Management**: React `useReducer` Context API + AsyncStorage
+* **AI Provider**: OpenRouter API (`google/gemini-2.5-flash`) via `react-native-sse`
+* **Hardware APIs**: `@react-native-voice/voice`, `expo-speech`, `expo-av`
+* **State Management**: React `useReducer` Context API + full AsyncStorage serialization
 * **Styling**: Native StyleSheet & `expo-linear-gradient`
-* **Animations**: React Native Animated (Strict Native Driver for performance)
 
 ## 🚀 Quick Start (Local Development)
 
@@ -41,10 +42,10 @@
    ```
 
 ## 📦 Production EAS Build
-To build a standalone APK, ensure you are logged into your Expo account (`npx eas-cli login`) and trigger the cloud builder:
+Because this app utilizes deep Android OS permissions (Microphone/Audio), you must build a standalone APK via the cloud builder:
 ```bash
 npx eas-cli build -p android --profile preview
 ```
 
 ---
-*Developed with dedication by **Amit Chanchal** | NIT Jamshedpur*
+*Developed by **Amit Chanchal** | NIT Jamshedpur*
