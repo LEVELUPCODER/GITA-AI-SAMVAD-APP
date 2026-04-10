@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Share } from 'react-native';
+import * as Speech from 'expo-speech';
 import { ChatMessage } from '../context/AppContext';
 import { Colors } from '../theme/colors';
 
@@ -14,6 +15,33 @@ export function ChatBubble({ message, onSave, isSaved, index }: ChatBubbleProps)
   const isAssistant = message.role === 'assistant';
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
+  const [isReading, setIsReading] = useState(false);
+
+  const handleRead = () => {
+    if (isReading) {
+      Speech.stop();
+      setIsReading(false);
+    } else {
+      setIsReading(true);
+      Speech.speak(message.content, {
+        rate: 0.9,
+        pitch: 0.9,
+        onDone: () => setIsReading(false),
+        onStopped: () => setIsReading(false),
+        onError: () => setIsReading(false),
+      });
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `${message.content}\n\n- Divine Guidance via Gita AI Samvad`,
+      });
+    } catch (error) {
+      console.log('Error sharing:', error);
+    }
+  };
 
   useEffect(() => {
     Animated.parallel([
@@ -53,24 +81,54 @@ export function ChatBubble({ message, onSave, isSaved, index }: ChatBubbleProps)
         {isAssistant && (
           <Text style={styles.roleLabel}>Krishna</Text>
         )}
-        <Text style={[styles.messageText, isAssistant ? styles.assistantText : styles.userText]}>
+        <Text 
+          style={[styles.messageText, isAssistant ? styles.assistantText : styles.userText]}
+          selectable={true}
+        >
           {message.content}
         </Text>
 
-        {/* Save button for assistant messages */}
-        {isAssistant && onSave && (
-          <TouchableOpacity
-            style={styles.saveButton}
-            onPress={() => onSave(message)}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.saveIcon, isSaved && styles.savedIcon]}>
-              {isSaved ? '⭐' : '☆'}
-            </Text>
-            <Text style={[styles.saveText, isSaved && styles.savedText]}>
-              {isSaved ? 'Saved' : 'Save'}
-            </Text>
-          </TouchableOpacity>
+        {/* Action buttons for assistant messages */}
+        {isAssistant && (
+          <View style={styles.actionContainer}>
+            {onSave && (
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => onSave(message)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.actionIcon, isSaved && styles.savedIcon]}>
+                  {isSaved ? '⭐' : '☆'}
+                </Text>
+                <Text style={[styles.actionText, isSaved && styles.savedText]}>
+                  {isSaved ? 'Saved' : 'Save'}
+                </Text>
+              </TouchableOpacity>
+            )}
+            
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleShare}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.actionIcon}>📤</Text>
+              <Text style={styles.actionText}>Share</Text>
+            </TouchableOpacity>
+
+            {/* Read Aloud Button */}
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleRead}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.actionIcon, isReading && styles.savedIcon]}>
+                {isReading ? '🔇' : '🔊'}
+              </Text>
+              <Text style={[styles.actionText, isReading && styles.savedText]}>
+                {isReading ? 'Stop' : 'Read'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     </Animated.View>
@@ -149,23 +207,27 @@ const styles = StyleSheet.create({
   userText: {
     color: Colors.text.secondary,
   },
-  saveButton: {
+  actionContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 10,
     paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.06)',
-    alignSelf: 'flex-start',
+    gap: 16,
   },
-  saveIcon: {
-    fontSize: 16,
-    marginRight: 4,
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionIcon: {
+    fontSize: 14,
+    marginRight: 6,
   },
   savedIcon: {
     color: Colors.gold,
   },
-  saveText: {
+  actionText: {
     fontSize: 12,
     color: Colors.text.tertiary,
     fontWeight: '500',
