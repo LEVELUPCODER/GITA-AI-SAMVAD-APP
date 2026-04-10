@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, TextInput, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import Voice, { SpeechResultsEvent, SpeechErrorEvent } from '@react-native-voice/voice';
 import { Colors } from '../theme/colors';
+import { useAppContext } from '../context/AppContext';
 
 interface ChatInputProps {
   onSend: (text: string) => void;
@@ -8,13 +10,53 @@ interface ChatInputProps {
 }
 
 export function ChatInput({ onSend, disabled }: ChatInputProps) {
+  const { state } = useAppContext();
   const [text, setText] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+
+  useEffect(() => {
+    Voice.onSpeechResults = (e: SpeechResultsEvent) => {
+      if (e.value && e.value[0]) setText(e.value[0]);
+    };
+    Voice.onSpeechEnd = () => setIsRecording(false);
+    Voice.onSpeechError = (e: SpeechErrorEvent) => {
+      console.log('Speech error:', e.error);
+      setIsRecording(false);
+    };
+
+    return () => {
+      Voice.destroy().then(Voice.removeAllListeners);
+    };
+  }, []);
+
+  const handleStartRecord = async () => {
+    try {
+      if (isRecording) {
+        await Voice.stop();
+        setIsRecording(false);
+      } else {
+        setText('');
+        const langCode = state.language === 'hindi' ? 'hi-IN' 
+                       : state.language === 'sanskrit' ? 'sa-IN' 
+                       : 'en-US';
+        await Voice.start(langCode);
+        setIsRecording(true);
+      }
+    } catch (e) {
+      console.log('Voice start error:', e);
+      setIsRecording(false);
+    }
+  };
 
   const handleSend = () => {
     const trimmed = text.trim();
     if (trimmed && !disabled) {
       onSend(trimmed);
       setText('');
+      if (isRecording) {
+        Voice.stop();
+        setIsRecording(false);
+      }
     }
   };
 
@@ -34,9 +76,21 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
           returnKeyType="send"
           blurOnSubmit
         />
+        {/* Record Button */}
+        <TouchableOpacity
+          style={[styles.actionBtn, isRecording && styles.recordingBtn]}
+          onPress={handleStartRecord}
+          disabled={disabled}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.sendIcon}>{isRecording ? '🛑' : '🎤'}</Text>
+        </TouchableOpacity>
+
+        {/* Send Button */}
         <TouchableOpacity
           style={[
-            styles.sendButton,
+            styles.actionBtn,
+            styles.sendMode,
             (!text.trim() || disabled) && styles.sendButtonDisabled,
           ]}
           onPress={handleSend}
@@ -78,16 +132,24 @@ const styles = StyleSheet.create({
     maxHeight: 100,
     paddingVertical: 10,
   },
-  sendButton: {
+  actionBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 215, 0, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 2,
     borderWidth: 1,
+    borderColor: Colors.border.subtle,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  sendMode: {
+    backgroundColor: 'rgba(255, 215, 0, 0.15)',
     borderColor: Colors.border.gold,
+  },
+  recordingBtn: {
+    backgroundColor: 'rgba(255, 0, 0, 0.15)',
+    borderColor: 'red',
   },
   sendButtonDisabled: {
     opacity: 0.3,
